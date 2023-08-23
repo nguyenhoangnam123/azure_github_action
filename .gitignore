@@ -1,0 +1,3 @@
+infras/env/*/.terraform*
+.idea
+
