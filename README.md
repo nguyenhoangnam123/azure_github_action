@@ -16,3 +16,6 @@
 - [How to config Terraform Azure provider](https://learn.microsoft.com/en-us/azure/developer/terraform/create-resource-group?tabs=azure-cli)
 - [How to authenticate Terraform client by Azure service principal](https://learn.microsoft.com/en-us/azure/developer/terraform/authenticate-to-azure?source=recommendations&tabs=bash)
 - [How to store Terraform remote backend in Storage Account](https://learn.microsoft.com/en-us/azure/developer/terraform/store-state-in-azure-storage?tabs=azure-cli)
+- [How to use Az Powershell](https://learn.microsoft.com/bs-latn-ba/powershell/azure/get-started-azureps?view=azps-0.10.0)
+- [Azure SQL authentication by Azure AD](https://learn.microsoft.com/en-us/azure/azure-sql/database/authentication-aad-configure?tabs=azure-cli&view=azuresql#provision-azure-ad-admin-sql-managed-instance)
+- [How to create User assigned managed identity](https://learn.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/how-manage-user-assigned-managed-identities?pivots=identity-mi-methods-azp)
