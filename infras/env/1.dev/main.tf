@@ -2,7 +2,7 @@
 data "azurerm_client_config" "current" {}
 
 variable "terraform_sp" {
-  type = string
+  type    = string
   default = "terraform-sp"
 }
 
