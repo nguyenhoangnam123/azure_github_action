@@ -1,6 +1,10 @@
 # datasource
 data "azurerm_client_config" "current" {}
 
+variable "terraform_sp" {
+  type = string
+  default = "terraform-sp"
+}
 
 resource "random_string" "username" {
   length           = 24
@@ -22,8 +26,7 @@ resource "azurerm_resource_group" "dev_rg" {
 }
 
 data "azuread_service_principal" "terraform_sp" {
-  display_name = "${local.prefix}-sp"
-  tags         = merge(local.common_tags)
+  display_name = var.terraform_sp
 }
 
 # Create KeyVault and KeyVault Secret
