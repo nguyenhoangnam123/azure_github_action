@@ -1,6 +1,18 @@
 # datasource
 data "azurerm_client_config" "current" {}
 
+data "azuread_service_principal" "terraform_sp" {
+  display_name = var.terraform_service_principal
+}
+
+data "azuread_users" "access_key_vault_users" {
+  user_principal_names = var.access_key_vault_users
+}
+
+data "azuread_service_principals" "access_key_vault_sps" {
+  display_name = var.access_key_vault_sps
+}
+
 data "azurerm_subscription" "current" {}
 
 variable "terraform_service_principal" {
@@ -74,6 +86,16 @@ variable "azure_sql_server_role_assigned_names" {
   default = ["Contributor"]
 }
 
+variable "access_key_vault_users" {
+  type = list(string)
+  default = ["namnh21894_gmail.com#EXT#@namnh21894gmail.onmicrosoft.com"]
+}
+
+variable "access_key_vault_sps" {
+  type = list(string)
+  default = ["terraform-umi, terraform-msi, terraform-sp"]
+}
+
 #########################################################
 # Create Azure SQL server and database on dev environment
 #########################################################
@@ -96,10 +118,6 @@ resource "azurerm_resource_group" "dev_rg" {
   tags = merge(local.common_tags)
 }
 
-data "azuread_service_principal" "terraform_sp" {
-  display_name = var.terraform_service_principal
-}
-
 resource "azurerm_key_vault" "key_vault" {
   name                = "${local.prefix}-kv"
   location            = azurerm_resource_group.dev_rg.location
@@ -107,27 +125,14 @@ resource "azurerm_key_vault" "key_vault" {
   tenant_id           = data.azurerm_client_config.current.tenant_id
   sku_name            = "standard"
 
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-
-    key_permissions = [
-      "Create",
-      "Delete",
-      "Get",
-      "Purge",
-      "Recover",
-      "Update",
-      "GetRotationPolicy",
-      "SetRotationPolicy"
-    ]
-
-    secret_permissions = [
-      "List",
-      "Set",
-      "Get",
-      "Delete"
-    ]
+  dynamic "access_policy" {
+    for_each = local.key_vault_access_policies
+    content {
+      tenant_id = access_policy.value["tenant_id"]
+      object_id = access_policy.value["object_id"]
+      key_permissions = access_policy.value["key_permissions"]
+      secret_permissions = access_policy.value["secret_permissions"]
+    }
   }
 }
 
