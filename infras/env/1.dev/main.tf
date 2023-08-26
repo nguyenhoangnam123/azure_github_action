@@ -109,9 +109,24 @@ resource "azurerm_mssql_server" "main" {
   depends_on = [azurerm_key_vault_secret.sql_admin_password, azurerm_key_vault_secret.sql_admin_username]
 }
 
+resource "azurerm_mssql_database" "main" {
+  name           = "${local.prefix}-mssql-db"
+  server_id      = azurerm_mssql_server.main.id
+  license_type   = "LicenseIncluded"
+  max_size_gb    = 4
+  read_scale     = true
+  sku_name       = "S0"
+  zone_redundant = false
+
+  tags = merge(local.common_tags, tomap({
+    "type" : "azure-sql-database"
+  }))
+}
+
 #############################################
 # Create Azure automation account and runbook
 #############################################
+
 
 ###################################
 # Create guest and user group on AD
