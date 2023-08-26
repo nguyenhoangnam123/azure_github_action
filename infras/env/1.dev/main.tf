@@ -2,7 +2,7 @@
 data "azurerm_client_config" "current" {}
 
 data "azuread_service_principal" "terraform_sp" {
-  display_name = var.terraform_service_principal
+  display_names = var.terraform_service_principal
 }
 
 data "azuread_users" "access_key_vault_users" {
