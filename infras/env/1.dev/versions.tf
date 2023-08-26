@@ -34,4 +34,5 @@ provider "azurerm" {
 }
 
 provider "azuread" {
+  use_oidc = true
 }
