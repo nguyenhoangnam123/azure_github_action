@@ -1,6 +1,8 @@
 # datasource
 data "azurerm_client_config" "current" {}
 
+data "azurerm_subscription" "current" {}
+
 variable "terraform_service_principal" {
   type    = string
   default = "terraform-sp"
@@ -17,6 +19,58 @@ variable "azure_mssql_server_fw_rule" {
     start_ip_address = "0.0.0.0",
     end_ip_address   = "0.0.0.0",
   }
+}
+
+variable "mssql_identity_app_roles" {
+  type = list(object({
+    allowed_member_types = set(string)
+    description          = string
+    display_name         = string
+    enabled              = bool
+    id                   = string
+    value                = string
+  }))
+
+  default = [
+    {
+      allowed_member_types = ["User", "Application"]
+      description          = "Admins can manage roles and perform all task actions"
+      display_name         = "Admin"
+      enabled              = true
+      id                   = "1b19509b-32b1-4e9f-b71d-4992aa991967"
+      value                = "admin"
+    }
+  ]
+}
+
+variable "mssql_identity_app_resource_access" {
+  type = map(object({
+    resource_access = set(object({
+      id   = string
+      type = string
+    }))
+  }))
+
+  default = tomap({
+    microsoft_graph = {
+      resource_app_id = "00000003-0000-0000-c000-000000000000"
+      resource_access = [
+        {
+          id   = "df021288-bdef-4463-88db-98f22de89214" # User.Read.All
+          type = "Role"
+        },
+        {
+          id   = "b4e74841-8e56-480b-be8b-910348b18b4c" # User.ReadWrite
+          type = "Scope"
+        }
+      ]
+    }
+  })
+}
+
+variable "azure_sql_server_role_assigned_names" {
+  type    = list(string)
+  default = ["Contributor"]
 }
 
 #########################################################
@@ -94,6 +148,60 @@ resource "azurerm_key_vault_secret" "sql_admin_password" {
   depends_on = [azurerm_key_vault.key_vault]
 }
 
+resource "azurerm_user_assigned_identity" "mssql_server_identity" {
+  name                = "${local.prefix}-mssqlserver-identity"
+  location            = azurerm_resource_group.dev_rg.location
+  resource_group_name = azurerm_resource_group.dev_rg.name
+
+  tags = merge(local.common_tags, tomap({
+    "type" : "user-defined-managed-identity"
+  }))
+}
+
+resource "azurerm_role_assignment" "mssql_server_identity_role_assignment" {
+  for_each             = toset(var.azure_sql_server_role_assigned_names)
+  role_definition_name = each.key
+  scope                = data.azurerm_subscription.current.id
+  principal_id         = azurerm_user_assigned_identity.mssql_server_identity.principal_id
+}
+
+resource "azuread_application" "mssql_server_identity_ad_app" {
+  display_name     = "${local.prefix}-mssql-server-identity-ad-app"
+  owners           = [azurerm_user_assigned_identity.mssql_server_identity.id]
+  sign_in_audience = "AzureADMyOrg"
+
+  dynamic "app_role" {
+    for_each = var.mssql_identity_app_roles
+    content {
+      allowed_member_types = app_role.value["allowed_member_types"]
+      description          = app_role.value["description"]
+      display_name         = app_role.value["display_name"]
+      enabled              = app_role.value["enabled"]
+      id                   = app_role.value["id"]
+      value                = app_role.value["value"]
+    }
+  }
+
+  dynamic "required_resource_access" {
+    for_each = var.mssql_identity_app_resource_access
+    content {
+      resource_app_id = required_resource_access.value["required_resource_access"] # Microsoft Graph
+
+      dynamic "resource_access" {
+        for_each = required_resource_access.value["resource_access"]
+        content {
+          id   = resource_access.value["id"]
+          type = resource_access.value["type"]
+        }
+      }
+    }
+  }
+
+  tags = merge(local.common_tags, tomap({
+    "type" : "azure-directory-app"
+  }))
+}
+
 resource "azurerm_mssql_server" "main" {
   name                = "${local.prefix}-mssqlserver-main"
   resource_group_name = azurerm_resource_group.dev_rg.name
@@ -112,10 +220,10 @@ resource "azurerm_mssql_server" "main" {
 
   identity {
     type         = "UserAssigned"
-    identity_ids = [data.azurerm_client_config.current.client_id]
+    identity_ids = [azurerm_user_assigned_identity.mssql_server_identity.id]
   }
 
-  primary_user_assigned_identity_id = data.azurerm_client_config.current.client_id
+  primary_user_assigned_identity_id = azurerm_user_assigned_identity.mssql_server_identity.id
 
   tags = merge(local.common_tags, tomap({
     "type" : "azure-sql-server"
