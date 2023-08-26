@@ -45,6 +45,7 @@ variable "mssql_identity_app_roles" {
 
 variable "mssql_identity_app_resource_access" {
   type = map(object({
+    resource_app_id = string
     resource_access = set(object({
       id   = string
       type = string
