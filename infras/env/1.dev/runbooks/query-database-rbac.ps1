@@ -1,4 +1,4 @@
-$appId = "080b8d68-fd36-471b-bc32-d009ba39ec24"
+$appId = "23e114c5-6fb1-4f37-b733-e8b545f75bc7"
 $tenantId = "b5606dd5-4171-4134-a6bd-ec46618ad53d"
 $password = "ZpK8Q~e75fWxFDTb_d2t9RywTzDmU4R_y8-sJaVS"
 $secpasswd = ConvertTo-SecureString $password -AsPlainText -Force

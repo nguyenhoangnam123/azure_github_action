@@ -258,9 +258,38 @@ resource "azurerm_automation_account" "main" {
   location            = azurerm_resource_group.dev_rg.location
   resource_group_name = azurerm_resource_group.dev_rg.name
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   sku_name = "Basic"
+
+  tags = merge(local.common_tags, tomap({
+    type = "automation-account"
+  }))
 }
 
+data "local_file" "runbook_database_rbac" {
+  filename = "${path.module}/runbooks/query-database-rbac.ps1"
+}
+
+resource "azurerm_automation_runbook" "example" {
+  name                    = "Get-AzureVMTutorial"
+  location                = azurerm_resource_group.dev_rg.location
+  resource_group_name     = azurerm_resource_group.dev_rg.name
+  automation_account_name = azurerm_automation_account.main.name
+
+  log_verbose  = "true"
+  log_progress = "true"
+  description  = "This is an runbook for querying database rbac"
+  runbook_type = "PowerShell"
+
+  content = data.local_file.runbook_database_rbac.content
+
+  publish_content_link {
+    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/c4935ffb69246a6058eb24f54640f53f69d3ac9f/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
+  }
+}
 
 ###################################
 # Create guest and user group on AD
