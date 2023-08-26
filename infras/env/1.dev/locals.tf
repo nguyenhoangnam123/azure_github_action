@@ -4,7 +4,7 @@ locals {
   region      = "eastus"
 
   key_vault_user_access_policies = toset([
-    for object_id in data.azuread_users : merge(
+    for object_id in data.azuread_users.access_key_vault_users.object_ids : merge(
       tomap({
         tenant_id       = data.azurerm_client_config.current.tenant_id
         key_permissions = [
@@ -30,7 +30,7 @@ locals {
   ])
 
   key_vault_sps_access_policies = toset([
-    for object_id in data.azuread_service_principals : merge(
+    for object_id in data.azuread_service_principals.access_key_vault_sps.object_ids : merge(
       tomap({
         tenant_id       = data.azurerm_client_config.current.tenant_id
         key_permissions = [
