@@ -196,10 +196,6 @@ resource "azuread_application" "mssql_server_identity_ad_app" {
       }
     }
   }
-
-  tags = merge(local.common_tags, tomap({
-    "type" : "azure-directory-app"
-  }))
 }
 
 resource "azurerm_mssql_server" "main" {
