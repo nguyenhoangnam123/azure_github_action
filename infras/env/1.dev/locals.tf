@@ -57,7 +57,7 @@ locals {
 
   key_vault_access_policies = setunion(
     key_vault_user_access_policies,
-    key_vault_managed_identity_access_policies
+    key_vault_sps_access_policies
   )
 
   common_tags = {
