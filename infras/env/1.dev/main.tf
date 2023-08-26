@@ -116,15 +116,7 @@ resource "azurerm_key_vault" "key_vault" {
   tenant_id           = data.azurerm_client_config.current.tenant_id
   sku_name            = "standard"
 
-  dynamic "access_policy" {
-    for_each = local.key_vault_access_policies
-    content {
-      tenant_id = access_policy.value["tenant_id"]
-      object_id = access_policy.value["object_id"]
-      key_permissions = access_policy.value["key_permissions"]
-      secret_permissions = access_policy.value["secret_permissions"]
-    }
-  }
+  access_policy = local.key_vault_access_policies
 }
 
 resource "azurerm_key_vault_secret" "sql_admin_username" {
