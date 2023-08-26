@@ -51,7 +51,7 @@ variable "mssql_identity_app_resource_access" {
     }))
   }))
 
-  default = tomap({
+  default = {
     microsoft_graph = {
       resource_app_id = "00000003-0000-0000-c000-000000000000"
       resource_access = [
@@ -65,7 +65,7 @@ variable "mssql_identity_app_resource_access" {
         }
       ]
     }
-  })
+  }
 }
 
 variable "azure_sql_server_role_assigned_names" {
