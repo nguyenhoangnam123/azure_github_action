@@ -93,7 +93,7 @@ variable "access_key_vault_users" {
 
 variable "access_key_vault_sps" {
   type = list(string)
-  default = ["terraform-umi, terraform-msi, terraform-sp"]
+  default = ["terraform-msi, terraform-sp"]
 }
 
 #########################################################
