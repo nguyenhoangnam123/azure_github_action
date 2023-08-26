@@ -1,11 +1,14 @@
 # datasource
 data "azurerm_client_config" "current" {}
 
-variable "terraform_sp" {
+variable "terraform_service_principal" {
   type    = string
   default = "terraform-sp"
 }
 
+#########################################################
+# Create Azure SQL server and database on dev environment
+#########################################################
 resource "random_string" "username" {
   length           = 24
   special          = true
@@ -26,10 +29,9 @@ resource "azurerm_resource_group" "dev_rg" {
 }
 
 data "azuread_service_principal" "terraform_sp" {
-  display_name = var.terraform_sp
+  display_name = var.terraform_service_principal
 }
 
-# Create KeyVault and KeyVault Secret
 resource "azurerm_key_vault" "key_vault" {
   name                = "${local.prefix}-kv"
   location            = azurerm_resource_group.dev_rg.location
@@ -57,7 +59,6 @@ resource "azurerm_key_vault" "key_vault" {
     ]
   }
 }
-
 
 resource "azurerm_key_vault_secret" "sql_admin_username" {
   name         = "${local.prefix}-sql-admin-username"
@@ -99,3 +100,11 @@ resource "azurerm_mssql_server" "main" {
 
   depends_on = [azurerm_key_vault_secret.sql_admin_password, azurerm_key_vault_secret.sql_admin_username]
 }
+
+#############################################
+# Create Azure automation account and runbook
+#############################################
+
+###################################
+# Create guest and user group on AD
+###################################

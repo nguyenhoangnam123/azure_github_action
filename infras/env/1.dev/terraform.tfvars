@@ -1,1 +1,1 @@
-terraform_sp = "terraform-sp"
+terraform_service_principal = "terraform-sp"
