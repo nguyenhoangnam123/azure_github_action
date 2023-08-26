@@ -292,7 +292,7 @@ resource "azurerm_automation_runbook" "query_database_rbac" {
 }
 
 resource "azurerm_automation_webhook" "query_database_rbac_runbook_webhook" {
-  name                    = "TestRunbook_webhook"
+  name                    = "${local.prefix}-query-database-webhook"
   resource_group_name     = azurerm_resource_group.dev_rg.name
   automation_account_name = azurerm_automation_account.main.name
   expiry_time             = "2023-12-31T00:00:00Z"
