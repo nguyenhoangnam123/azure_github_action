@@ -168,7 +168,7 @@ resource "azurerm_role_assignment" "mssql_server_identity_role_assignment" {
 
 resource "azuread_application" "mssql_server_identity_ad_app" {
   display_name     = "${local.prefix}-mssql-server-identity-ad-app"
-  owners           = [azurerm_user_assigned_identity.mssql_server_identity.id]
+  owners           = [azurerm_user_assigned_identity.mssql_server_identity.principal_id]
   sign_in_audience = "AzureADMyOrg"
 
   dynamic "app_role" {
