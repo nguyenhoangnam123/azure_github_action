@@ -11,6 +11,14 @@ variable "automation_account_name" {
   default = "automation-dev-account"
 }
 
+variable "azure_mssql_server_fw_rule" {
+  type    = map(string)
+  default = {
+    start_ip_address = "0.0.0.0",
+    end_ip_address   = "0.0.0.0",
+  }
+}
+
 #########################################################
 # Create Azure SQL server and database on dev environment
 #########################################################
@@ -102,6 +110,13 @@ resource "azurerm_mssql_server" "main" {
     object_id      = data.azuread_service_principal.terraform_sp.application_id
   }
 
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [data.azurerm_client_config.current.client_id]
+  }
+
+  primary_user_assigned_identity_id = data.azurerm_client_config.current.client_id
+
   tags = merge(local.common_tags, tomap({
     "type" : "azure-sql-server"
   }))
@@ -109,12 +124,19 @@ resource "azurerm_mssql_server" "main" {
   depends_on = [azurerm_key_vault_secret.sql_admin_password, azurerm_key_vault_secret.sql_admin_username]
 }
 
+resource "azurerm_mssql_firewall_rule" "main" {
+  name             = "FirewallRule1"
+  server_id        = azurerm_mssql_server.main.id
+  start_ip_address = azure_mssql_server_fw_rule["start_ip_address"]
+  end_ip_address   = azure_mssql_server_fw_rule["end_ip_address"]
+}
+
 resource "azurerm_mssql_database" "main" {
   name           = "${local.prefix}-mssql-db"
   server_id      = azurerm_mssql_server.main.id
   license_type   = "LicenseIncluded"
-#  max_size_gb    = 4
-#  read_scale     = true
+  #  max_size_gb    = 4
+  #  read_scale     = true
   sku_name       = "S0"
   zone_redundant = false
 
@@ -133,7 +155,6 @@ resource "azurerm_automation_account" "main" {
 
   sku_name = "Basic"
 }
-
 
 
 ###################################
