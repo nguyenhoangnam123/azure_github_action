@@ -4,55 +4,53 @@ locals {
   region      = "eastus"
 
   key_vault_user_access_policies = toset([
-    for object_id in data.azuread_users.access_key_vault_users.object_ids : merge(
-      tomap({
-        tenant_id       = data.azurerm_client_config.current.tenant_id
-        key_permissions = [
-          "Create",
-          "Delete",
-          "Get",
-          "Purge",
-          "Recover",
-          "Update",
-          "GetRotationPolicy",
-          "SetRotationPolicy"
-        ]
+    for object_id in data.azuread_users.access_key_vault_users.object_ids :
+    {
+      tenant_id       = data.azurerm_client_config.current.tenant_id
+      object_id       = object_id
+      key_permissions = [
+        "Create",
+        "Delete",
+        "Get",
+        "Purge",
+        "Recover",
+        "Update",
+        "GetRotationPolicy",
+        "SetRotationPolicy"
+      ]
 
-        secret_permissions = [
-          "List",
-          "Set",
-          "Get",
-          "Delete"
-        ]
-      }),
-      { object_id = object_id }
-    )
+      secret_permissions = [
+        "List",
+        "Set",
+        "Get",
+        "Delete"
+      ]
+    }
   ])
 
   key_vault_sps_access_policies = toset([
-    for object_id in data.azuread_service_principals.access_key_vault_sps.object_ids : merge(
-      tomap({
-        tenant_id       = data.azurerm_client_config.current.tenant_id
-        key_permissions = [
-          "Create",
-          "Delete",
-          "Get",
-          "Purge",
-          "Recover",
-          "Update",
-          "GetRotationPolicy",
-          "SetRotationPolicy"
-        ]
+    for object_id in data.azuread_service_principals.access_key_vault_sps.object_ids :
+    {
+      tenant_id       = data.azurerm_client_config.current.tenant_id
+      object_id       = object_id
+      key_permissions = [
+        "Create",
+        "Delete",
+        "Get",
+        "Purge",
+        "Recover",
+        "Update",
+        "GetRotationPolicy",
+        "SetRotationPolicy"
+      ]
 
-        secret_permissions = [
-          "List",
-          "Set",
-          "Get",
-          "Delete"
-        ]
-      }),
-      { object_id = object_id }
-    )
+      secret_permissions = [
+        "List",
+        "Set",
+        "Get",
+        "Delete"
+      ]
+    }
   ])
 
   key_vault_access_policies = setunion(
