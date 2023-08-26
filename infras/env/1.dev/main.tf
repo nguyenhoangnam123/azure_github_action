@@ -9,10 +9,6 @@ data "azuread_users" "access_key_vault_users" {
   user_principal_names = var.access_key_vault_users
 }
 
-data "azuread_service_principals" "access_key_vault_sps" {
-  display_names = var.access_key_vault_sps
-}
-
 data "azurerm_subscription" "current" {}
 
 variable "terraform_service_principal" {
@@ -89,11 +85,6 @@ variable "azure_sql_server_role_assigned_names" {
 variable "access_key_vault_users" {
   type = list(string)
   default = ["namnh21894_gmail.com#EXT#@namnh21894gmail.onmicrosoft.com"]
-}
-
-variable "access_key_vault_sps" {
-  type = list(string)
-  default = ["terraform-msi, terraform-sp"]
 }
 
 #########################################################

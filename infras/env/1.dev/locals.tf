@@ -29,10 +29,10 @@ locals {
   ])
 
   key_vault_sps_access_policies = toset([
-    for object_id in data.azuread_service_principals.access_key_vault_sps.object_ids :
     {
-      tenant_id       = data.azurerm_client_config.current.tenant_id
-      object_id       = object_id
+      tenant_id = data.azurerm_client_config.current.tenant_id
+      object_id = data.azurerm_client_config.current.object_id
+
       key_permissions = [
         "Create",
         "Delete",
