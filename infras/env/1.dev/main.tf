@@ -273,8 +273,8 @@ data "local_file" "runbook_database_rbac" {
   filename = "${path.module}/runbooks/query-database-rbac.ps1"
 }
 
-resource "azurerm_automation_runbook" "example" {
-  name                    = "Get-AzureVMTutorial"
+resource "azurerm_automation_runbook" "query_database_rbac" {
+  name                    = "${local.prefix}-query-database_rbac"
   location                = azurerm_resource_group.dev_rg.location
   resource_group_name     = azurerm_resource_group.dev_rg.name
   automation_account_name = azurerm_automation_account.main.name
@@ -286,9 +286,9 @@ resource "azurerm_automation_runbook" "example" {
 
   content = data.local_file.runbook_database_rbac.content
 
-  publish_content_link {
-    uri = "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/c4935ffb69246a6058eb24f54640f53f69d3ac9f/101-automation-runbook-getvms/Runbooks/Get-AzureVMTutorial.ps1"
-  }
+  tags = merge(local.common_tags, tomap({
+    type = "automation-runbook"
+  }))
 }
 
 ###################################
