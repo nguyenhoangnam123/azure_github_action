@@ -6,6 +6,11 @@ variable "terraform_service_principal" {
   default = "terraform-sp"
 }
 
+variable "automation_account_name" {
+  type    = string
+  default = "automation-dev-account"
+}
+
 #########################################################
 # Create Azure SQL server and database on dev environment
 #########################################################
@@ -55,7 +60,10 @@ resource "azurerm_key_vault" "key_vault" {
     ]
 
     secret_permissions = [
+      "Create",
       "Set",
+      "Get",
+      "Delete"
     ]
   }
 }
