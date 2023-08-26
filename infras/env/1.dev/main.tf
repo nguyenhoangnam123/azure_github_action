@@ -114,7 +114,7 @@ resource "azurerm_mssql_database" "main" {
   server_id      = azurerm_mssql_server.main.id
   license_type   = "LicenseIncluded"
 #  max_size_gb    = 4
-  read_scale     = true
+#  read_scale     = true
   sku_name       = "S0"
   zone_redundant = false
 
@@ -126,6 +126,14 @@ resource "azurerm_mssql_database" "main" {
 #############################################
 # Create Azure automation account and runbook
 #############################################
+resource "azurerm_automation_account" "main" {
+  name                = "${local.prefix}-automation-account"
+  location            = azurerm_resource_group.dev_rg.location
+  resource_group_name = azurerm_resource_group.dev_rg.name
+
+  sku_name = "Basic"
+}
+
 
 
 ###################################
