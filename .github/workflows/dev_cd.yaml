@@ -20,7 +20,7 @@ jobs:
       run:
         working-directory: infras/env/1.dev
     name: Analyse the Terraform
-#    environment: dev
+    environment: dev
     runs-on: ubuntu-latest
     env:
       ARM_CLIENT_ID: "${{secrets.AZURE_CLIENT_ID}}"
