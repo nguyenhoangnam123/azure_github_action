@@ -113,7 +113,7 @@ resource "azurerm_mssql_database" "main" {
   name           = "${local.prefix}-mssql-db"
   server_id      = azurerm_mssql_server.main.id
   license_type   = "LicenseIncluded"
-  max_size_gb    = 4
+#  max_size_gb    = 4
   read_scale     = true
   sku_name       = "S0"
   zone_redundant = false
