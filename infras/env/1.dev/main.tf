@@ -185,7 +185,7 @@ resource "azuread_application" "mssql_server_identity_ad_app" {
   dynamic "required_resource_access" {
     for_each = var.mssql_identity_app_resource_access
     content {
-      resource_app_id = required_resource_access.value["required_resource_access"] # Microsoft Graph
+      resource_app_id = required_resource_access.value["resource_app_id"] # Microsoft Graph
 
       dynamic "resource_access" {
         for_each = required_resource_access.value["resource_access"]
