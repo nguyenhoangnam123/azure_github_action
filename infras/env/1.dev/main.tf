@@ -116,8 +116,7 @@ resource "azurerm_key_vault" "key_vault" {
   tenant_id           = data.azurerm_client_config.current.tenant_id
   sku_name            = "standard"
 
-  access_policy = [
-  {
+  access_policy = {
       tenant_id = data.azurerm_client_config.current.tenant_id
       object_id = data.azurerm_client_config.current.object_id
 
@@ -136,9 +135,12 @@ resource "azurerm_key_vault" "key_vault" {
         "List",
         "Set",
         "Get",
-        "Delete"
+        "Delete",
+        "Recover",
+        "Backup",
+        "Restore"
       ]
-    }]
+    }
 }
 
 resource "azurerm_key_vault_secret" "sql_admin_username" {
