@@ -3,7 +3,7 @@ $tenantId = "b5606dd5-4171-4134-a6bd-ec46618ad53d"
 $password = "ZpK8Q~e75fWxFDTb_d2t9RywTzDmU4R_y8-sJaVS"
 $secpasswd = ConvertTo-SecureString $password -AsPlainText -Force
 $mycreds = New-Object System.Management.Automation.PSCredential ($appId, $secpasswd)
-$ConnectionString="Data Source=namnh21894-dev-mssqlserver-main.database.windows.net; Initial Catalog=namnh21894-dev-mssql-db;"
+$ConnectionString="Data Source=namnh21894-prod-mssqlserver-main.database.windows.net; Initial Catalog=namnh21894-prod-mssql-db;"
 #$Query=@"
 #CREATE USER [terraform-msi] FROM EXTERNAL PROVIDER
 #ALTER ROLE db_datareader ADD MEMBER [terraform-msi]
