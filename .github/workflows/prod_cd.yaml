@@ -18,7 +18,7 @@ jobs:
     if: github.event_name == 'push' && contains(toJson(github.event.commits), 'Initial commit') == false
     defaults:
       run:
-        working-directory: infras/env/1.dev
+        working-directory: infras/env/2.prod
     name: Analyse the Terraform
     environment: prod
     runs-on: ubuntu-latest
@@ -67,7 +67,7 @@ jobs:
     needs: [analysis]
     defaults:
       run:
-        working-directory: infras/env/1.dev
+        working-directory: infras/env/2.prod
     name: Provision infrastructure by Terraform
     environment: prod
     runs-on: ubuntu-latest
