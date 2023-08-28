@@ -1,27 +1,10 @@
 # datasource
 data "azurerm_client_config" "current" {}
-
-data "azuread_service_principal" "terraform_sp" {
-  display_name = var.terraform_service_principal
-}
-
 data "azurerm_subscription" "current" {}
 
-#########################################################
-# Create Azure SQL server and database on dev environment
-#########################################################
-resource "random_string" "username" {
-  length           = 24
-  special          = true
-  override_special = "%@!"
-}
-
-resource "random_password" "password" {
-  length           = 24
-  special          = true
-  override_special = "%@!"
-}
-
+########################################
+# Resource group for Azure SQL resources
+########################################
 resource "azurerm_resource_group" "main" {
   count    = var.create_resource_group ? 1 : 0
   name     = "${local.prefix}-rg"
@@ -35,7 +18,25 @@ data "azurerm_resource_group" "main" {
   name  = var.resource_group_name
 }
 
+#####################################################
+# Azure SQL Administrative account (without Azure AD)
+#####################################################
+resource "random_string" "username" {
+  count            = var.mssql_authentication_by_ad_only ? 0 : 1
+  length           = 24
+  special          = true
+  override_special = "%@!"
+}
+
+resource "random_password" "password" {
+  count            = var.mssql_authentication_by_ad_only ? 0 : 1
+  length           = 24
+  special          = true
+  override_special = "%@!"
+}
+
 resource "azurerm_key_vault" "key_vault" {
+  count               = var.mssql_authentication_by_ad_only ? 0 : 1
   name                = "${local.prefix}-kv"
   location            = local.resource_group_location
   resource_group_name = resource_group_name
@@ -70,6 +71,7 @@ resource "azurerm_key_vault" "key_vault" {
 }
 
 resource "azurerm_key_vault_secret" "sql_admin_username" {
+  count        = var.mssql_authentication_by_ad_only ? 0 : 1
   name         = "${local.prefix}-sql-admin-username"
   value        = random_string.username.result
   key_vault_id = azurerm_key_vault.key_vault.id
@@ -79,6 +81,7 @@ resource "azurerm_key_vault_secret" "sql_admin_username" {
 }
 
 resource "azurerm_key_vault_secret" "sql_admin_password" {
+  count        = var.mssql_authentication_by_ad_only ? 0 : 1
   name         = "${local.prefix}-sql-admin-password"
   value        = random_password.password.result
   key_vault_id = azurerm_key_vault.key_vault.id
@@ -87,6 +90,22 @@ resource "azurerm_key_vault_secret" "sql_admin_password" {
   depends_on = [azurerm_key_vault.key_vault]
 }
 
+################################################
+# Azure AD identity for Azure SQL Administrative
+################################################
+data "azuread_service_principal" "mssql_ad_administrative_sp" {
+  count        = var.mssql_administrative_ad_entity_type == "ServicePrincipal" && length(var.mssql_administrative_ad_service_principal_name) > 0 ? 1 : 0
+  display_name = var.mssql_administrative_ad_service_principal_name
+}
+
+data "azuread_user" "mssql_ad_administrative_user" {
+  count        = var.mssql_administrative_ad_entity_type == "User" && length(var.mssql_administrative_ad_service_principal_name) > 0 ? 1 : 0
+  display_name = var.mssql_administrative_ad_service_principal_name
+}
+
+###########################
+# Azure SQL server Identity
+###########################
 resource "azurerm_user_assigned_identity" "mssql_server_identity" {
   count               = var.create_user_assigned_managed_identity ? 1 : 0
   name                = "${local.prefix}-mssqlserver-identity"
@@ -139,6 +158,9 @@ resource "azuread_application" "mssql_server_identity_ad_app" {
   }
 }
 
+#########################################################
+# Create Azure SQL server and database on dev environment
+#########################################################
 resource "azurerm_mssql_server" "main" {
   name                = "${local.prefix}-mssqlserver-main"
   resource_group_name = resource_group_name
@@ -146,15 +168,15 @@ resource "azurerm_mssql_server" "main" {
   version             = "12.0"
   minimum_tls_version = "1.2"
 
-  administrator_login          = azurerm_key_vault_secret.sql_admin_username.value
-  administrator_login_password = azurerm_key_vault_secret.sql_admin_password.value
+  administrator_login          = var.mssql_authentication_by_ad_only ? azurerm_key_vault_secret.sql_admin_username.value : null
+  administrator_login_password = var.mssql_authentication_by_ad_only ? azurerm_key_vault_secret.sql_admin_password.value : null
 
   dynamic "azuread_administrator" {
     for_each = var.enable_mssql_authentication_by_ad ? [1] : []
     content {
       azuread_authentication_only = var.mssql_authentication_by_ad_only
-      login_username              = data.azuread_service_principal.terraform_sp.display_name
-      object_id                   = data.azuread_service_principal.terraform_sp.application_id
+      login_username              = data.azuread_service_principal.mssql_ad_administrative_sp.display_name
+      object_id                   = data.azuread_service_principal.mssql_ad_administrative_sp.application_id
     }
   }
 

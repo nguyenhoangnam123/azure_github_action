@@ -1,3 +1,9 @@
+variable "common_tags" {
+  type = map(string)
+  description = "common tags for resources"
+  default = {}
+}
+
 variable "create_resource_group" {
   type        = bool
   description = "decide whether create separate resource group for resources"
@@ -30,12 +36,6 @@ variable "common_prefix" {
   type        = string
   description = "prefix of all resource names"
   default     = "namnh21894"
-}
-
-variable "terraform_service_principal" {
-  type        = string
-  description = "service principal for azure sql ad administration"
-  default     = "terraform-sp"
 }
 
 variable "azure_mssql_server_fw_rule" {
@@ -102,6 +102,37 @@ variable "azure_sql_server_role_assigned_names" {
 variable "enable_mssql_authentication_by_ad" {
   type        = bool
   description = "decide whether to authenticate with mssql server by azure ad"
+  default     = true
+}
+
+variable "mssql_administrative_ad_entity_type" {
+  type        = string
+  description = "azure ad entity type for administrative azure mssql"
+
+  validation {
+    condition = contains(["User", "ServicePrincipal"], var.mssql_administrative_ad_entity_type)
+  }
+}
+
+variable "mssql_administrative_ad_service_principal_name" {
+  type        = string
+  description = "service principal name for administrative azure mssql"
+  default     = ""
+
+  validation {
+    condition     = var.mssql_administrative_ad_entity_type == "ServicePrincipal" && length(var.mssql_administrative_ad_service_principal_name) > 0
+    error_message = "service principal name can not be null when using entity type service principal"
+  }
+}
+
+variable "mssql_administrative_ad_user_principal_name" {
+  type        = string
+  description = "user principal name for administrative azure mssql"
+  default     = ""
+  validation {
+    condition     = var.mssql_administrative_ad_entity_type == "User" && length(var.mssql_administrative_ad_user_principal_name) > 0
+    error_message = "user principal name can not be null when using entity type user"
+  }
 }
 
 variable "mssql_authentication_by_ad_only" {
@@ -152,8 +183,8 @@ variable "mssql_database_read_scale" {
 }
 
 variable "mssql_database_max_size_gb" {
-  type = number
+  type        = number
   description = "mssql database max size number in GB"
-  default = 4
+  default     = 4
 }
 

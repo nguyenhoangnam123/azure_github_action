@@ -41,11 +41,13 @@ variable "automation_account_sku_name" {
 variable "create_runbook" {
   type        = bool
   description = "decide whether to create runbook or not"
+  default     = true
 }
 
 variable "create_runbook_webhook" {
   type        = bool
   description = "decide whether to create runbook webhook or not"
+  default     = true
 }
 
 variable "runbook_file_path" {
@@ -62,11 +64,13 @@ variable "runbook_file_path" {
 variable "runbook_log_verbose" {
   type        = bool
   description = "decide log verbosity"
+  default     = true
 }
 
 variable "runbook_log_progress" {
   type        = bool
   description = "decide log progress"
+  default     = true
 }
 
 variable "runbook_description" {

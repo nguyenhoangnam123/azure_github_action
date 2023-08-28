@@ -1,10 +1,6 @@
 locals {
-  environment = "dev"
-  prefix      = "namnh21894-${local.environment}"
-  region      = "eastus"
-
   common_tags = {
-    Environment = "dev",
+    Environment = var.environment,
     Terraform   = true
   }
 }

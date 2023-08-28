@@ -10,9 +10,9 @@ data "azurerm_resource_group" "main" {
   name  = var.resource_group_name
 }
 
-#############################################
+########################################################
 # Create Azure automation account and automation_account
-#############################################
+########################################################
 resource "azurerm_automation_account" "main" {
   name                = "${local.prefix}-automation-account"
   location            = azurerm_resource_group.main.location
