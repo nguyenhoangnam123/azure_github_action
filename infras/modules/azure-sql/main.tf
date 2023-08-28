@@ -172,8 +172,8 @@ resource "azurerm_mssql_server" "main" {
   version             = "12.0"
   minimum_tls_version = "1.2"
 
-  administrator_login          = var.mssql_authentication_by_ad_only ? azurerm_key_vault_secret.sql_admin_username[0].value : null
-  administrator_login_password = var.mssql_authentication_by_ad_only ? azurerm_key_vault_secret.sql_admin_password[0].value : null
+  administrator_login          = var.mssql_authentication_by_ad_only ? null : azurerm_key_vault_secret.sql_admin_username[0].value
+  administrator_login_password = var.mssql_authentication_by_ad_only ? null : azurerm_key_vault_secret.sql_admin_password[0].value
 
   dynamic "azuread_administrator" {
     for_each = local.mssql_administrative_ad_service_principal_name ? [1] : []
