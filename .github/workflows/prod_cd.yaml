@@ -5,7 +5,7 @@ on:
     branches:
       - main
     tags:
-      - 'release/dev/v*'
+      - 'release/prod/v*'
   workflow_dispatch:
 
 permissions:
@@ -63,7 +63,7 @@ jobs:
         if: steps.plan.outcome == 'failure'
         run: exit 1
 
-  deployToDev:
+  deployToProd:
     needs: [analysis]
     defaults:
       run:
