@@ -103,7 +103,7 @@ data "azuread_service_principal" "mssql_ad_administrative_sp" {
 }
 
 data "azuread_user" "mssql_ad_administrative_user" {
-  count        = local.mssql_administrative_ad_user_principal_name ? 1 : 0
+  count               = local.mssql_administrative_ad_user_principal_name ? 1 : 0
   user_principal_name = var.mssql_administrative_ad_service_principal_name
 }
 
@@ -218,13 +218,14 @@ resource "azurerm_mssql_firewall_rule" "main" {
 }
 
 resource "azurerm_mssql_database" "main" {
-  name           = "${local.prefix}-mssql-db"
-  server_id      = azurerm_mssql_server.main.id
-  license_type   = "LicenseIncluded"
-  max_size_gb    = var.mssql_database_zone_redundant ? var.mssql_database_max_size_gb : null
-  read_scale     = var.mssql_database_zone_redundant && var.mssql_database_read_scale
-  sku_name       = var.mssql_database_sku_name
-  zone_redundant = var.mssql_database_zone_redundant
+  name                 = "${local.prefix}-mssql-db"
+  server_id            = azurerm_mssql_server.main.id
+  license_type         = "LicenseIncluded"
+  max_size_gb          = var.mssql_database_zone_redundant ? var.mssql_database_max_size_gb : null
+  read_scale           = var.mssql_database_zone_redundant && var.mssql_database_read_scale
+  sku_name             = var.mssql_database_sku_name
+  zone_redundant       = var.mssql_database_zone_redundant
+  storage_account_type = var.mssql_database_storage_account_type
 
   tags = merge(local.common_tags, tomap({
     "type" : "azure-sql-database"

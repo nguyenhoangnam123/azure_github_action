@@ -40,6 +40,19 @@ variable "mssql_database_read_scale" {
   default     = false
 }
 
+variable "mssql_database_sku_name" {
+  type        = string
+  description = "mssql database sku name"
+  default     = "S0"
+
+  validation {
+    condition = contains([
+      "GP_S_Gen5_2", "HS_Gen4_1", "BC_Gen5_2", "ElasticPool", "Basic", "S0", "P2", "DW100c", "DS100"
+    ], var.mssql_database_sku_name)
+    error_message = "invalid database sku"
+  }
+}
+
 variable "mssql_database_max_size_gb" {
   type        = number
   description = "mssql database max size number in GB"

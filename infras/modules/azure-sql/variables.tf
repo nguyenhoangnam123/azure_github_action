@@ -1,7 +1,7 @@
 variable "common_tags" {
-  type = map(string)
+  type        = map(string)
   description = "common tags for resources"
-  default = {}
+  default     = {}
 }
 
 variable "create_resource_group" {
@@ -106,7 +106,7 @@ variable "mssql_administrative_ad_entity_type" {
   description = "azure ad entity type for administrative azure mssql"
 
   validation {
-    condition = contains(["User", "ServicePrincipal"], var.mssql_administrative_ad_entity_type)
+    condition     = contains(["User", "ServicePrincipal"], var.mssql_administrative_ad_entity_type)
     error_message = "invalid ad entity type"
   }
 }
@@ -156,6 +156,19 @@ variable "mssql_database_sku_name" {
       "GP_S_Gen5_2", "HS_Gen4_1", "BC_Gen5_2", "ElasticPool", "Basic", "S0", "P2", "DW100c", "DS100"
     ], var.mssql_database_sku_name)
     error_message = "invalid database sku"
+  }
+}
+
+variable "mssql_database_storage_account_type" {
+  type        = bool
+  description = "mssql database storage account type"
+  default     = "Geo"
+
+  validation {
+    condition = contains([
+      "Geo", "Local", "Zone"
+    ], var.mssql_database_storage_account_type)
+    error_message = "invalid database storage account type"
   }
 }
 
