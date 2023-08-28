@@ -3,9 +3,9 @@ name: continuous delivery on Azure by Terraform and Github OIDC
 on:
   push:
     branches:
-      - dev
+      - main
     tags:
-      - 'release/dev/v*'
+      - 'release/prod/v*'
   workflow_dispatch:
 
 permissions:
@@ -18,9 +18,9 @@ jobs:
     if: github.event_name == 'push' && contains(toJson(github.event.commits), 'Initial commit') == false
     defaults:
       run:
-        working-directory: infras/env/1.dev
+        working-directory: infras/env/2.prod
     name: Analyse the Terraform
-    environment: dev
+    environment: prod
     runs-on: ubuntu-latest
     env:
       ARM_CLIENT_ID: "${{secrets.AZURE_CLIENT_ID}}"
@@ -63,13 +63,13 @@ jobs:
         if: steps.plan.outcome == 'failure'
         run: exit 1
 
-  deployToDev:
+  deployToProd:
     needs: [analysis]
     defaults:
       run:
-        working-directory: infras/env/1.dev
+        working-directory: infras/env/2.prod
     name: Provision infrastructure by Terraform
-    environment: dev
+    environment: prod
     runs-on: ubuntu-latest
     env:
       ARM_CLIENT_ID: "${{secrets.AZURE_CLIENT_ID}}"
