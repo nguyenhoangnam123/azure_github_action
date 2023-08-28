@@ -212,7 +212,6 @@ resource "azurerm_mssql_server" "main" {
 
 resource "azurerm_mssql_firewall_rule" "main" {
   name                = "FirewallRule1"
-  resource_group_name = local.resource_group_name
   server_id           = azurerm_mssql_server.main.id
   start_ip_address    = var.azure_mssql_server_fw_rule["start_ip_address"]
   end_ip_address      = var.azure_mssql_server_fw_rule["end_ip_address"]
