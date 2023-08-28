@@ -2,8 +2,6 @@ name: continuous delivery on Azure by Terraform and Github OIDC
 
 on:
   push:
-    branches:
-      - main
     tags:
       - 'release/prod/v*'
   workflow_dispatch:

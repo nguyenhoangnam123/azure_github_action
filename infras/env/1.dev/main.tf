@@ -1,5 +1,5 @@
 module "azure_sql" {
-  source = "../../modules/azure-sql/"
+  source = "../../modules/azure_sql/"
 
   environment   = var.environment
   region        = var.region
