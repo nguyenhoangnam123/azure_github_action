@@ -15,8 +15,8 @@ data "azurerm_resource_group" "main" {
 ########################################################
 resource "azurerm_automation_account" "main" {
   name                = "${local.prefix}-automation-account"
-  location            = azurerm_resource_group.main.location
-  resource_group_name = azurerm_resource_group.main.name
+  location            = local.resource_group_location
+  resource_group_name = local.resource_group_name
 
   identity {
     type = "SystemAssigned"
@@ -37,8 +37,8 @@ data "local_file" "runbook_database_rbac" {
 resource "azurerm_automation_runbook" "query_database_rbac" {
   count                   = var.create_runbook ? 1 : 0
   name                    = "${local.prefix}-query-database_rbac"
-  location                = azurerm_resource_group.main.location
-  resource_group_name     = azurerm_resource_group.main.name
+  location                = local.resource_group_location
+  resource_group_name     = local.resource_group_name
   automation_account_name = azurerm_automation_account.main.name
 
   log_verbose  = var.runbook_log_verbose
@@ -46,7 +46,7 @@ resource "azurerm_automation_runbook" "query_database_rbac" {
   description  = var.runbook_description
   runbook_type = var.runbook_type
 
-  content = data.local_file.runbook_database_rbac.content
+  content = data.local_file.runbook_database_rbac[0].content
 
   tags = merge(local.common_tags, tomap({
     type = "automation-runbook"
@@ -56,11 +56,11 @@ resource "azurerm_automation_runbook" "query_database_rbac" {
 resource "azurerm_automation_webhook" "query_database_rbac_runbook_webhook" {
   count                   = var.create_runbook ? 1 : 0
   name                    = "${local.prefix}-query-database-webhook"
-  resource_group_name     = azurerm_resource_group.main.name
+  resource_group_name     = local.resource_group_name
   automation_account_name = azurerm_automation_account.main.name
   expiry_time             = "2023-12-31T00:00:00Z"
 
   enabled      = var.enable_webhook
-  runbook_name = azurerm_automation_runbook.query_database_rbac.name
+  runbook_name = azurerm_automation_runbook.query_database_rbac[0].name
   parameters   = var.webhook_parameters
 }

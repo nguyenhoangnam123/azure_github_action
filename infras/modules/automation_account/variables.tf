@@ -8,10 +8,6 @@ variable "resource_group_name" {
   type        = string
   description = "resource group name which is delivered from root module"
   default     = ""
-  validation {
-    condition     = length(var.resource_group_name) > 0 && !var.create_resource_group
-    error_message = "resource group name can not be null or empty"
-  }
 }
 
 variable "environment" {

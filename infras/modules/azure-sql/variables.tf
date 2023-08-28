@@ -14,10 +14,6 @@ variable "resource_group_name" {
   type        = string
   description = "resource group name which is delivered from root module"
   default     = ""
-  validation {
-    condition     = length(var.resource_group_name) > 0 && !var.create_resource_group
-    error_message = "resource group name can not be null or empty"
-  }
 }
 
 variable "environment" {
@@ -111,6 +107,7 @@ variable "mssql_administrative_ad_entity_type" {
 
   validation {
     condition = contains(["User", "ServicePrincipal"], var.mssql_administrative_ad_entity_type)
+    error_message = "invalid ad entity type"
   }
 }
 
@@ -118,21 +115,12 @@ variable "mssql_administrative_ad_service_principal_name" {
   type        = string
   description = "service principal name for administrative azure mssql"
   default     = ""
-
-  validation {
-    condition     = var.mssql_administrative_ad_entity_type == "ServicePrincipal" && length(var.mssql_administrative_ad_service_principal_name) > 0
-    error_message = "service principal name can not be null when using entity type service principal"
-  }
 }
 
 variable "mssql_administrative_ad_user_principal_name" {
   type        = string
   description = "user principal name for administrative azure mssql"
   default     = ""
-  validation {
-    condition     = var.mssql_administrative_ad_entity_type == "User" && length(var.mssql_administrative_ad_user_principal_name) > 0
-    error_message = "user principal name can not be null when using entity type user"
-  }
 }
 
 variable "mssql_authentication_by_ad_only" {
@@ -167,6 +155,7 @@ variable "mssql_database_sku_name" {
     condition = contains([
       "GP_S_Gen5_2", "HS_Gen4_1", "BC_Gen5_2", "ElasticPool", "Basic", "S0", "P2", "DW100c", "DS100"
     ], var.mssql_database_sku_name)
+    error_message = "invalid database sku"
   }
 }
 

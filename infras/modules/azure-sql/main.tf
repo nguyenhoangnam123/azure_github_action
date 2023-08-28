@@ -18,6 +18,10 @@ data "azurerm_resource_group" "main" {
   name  = var.resource_group_name
 }
 
+locals {
+
+}
+
 #####################################################
 # Azure SQL Administrative account (without Azure AD)
 #####################################################
@@ -39,7 +43,7 @@ resource "azurerm_key_vault" "key_vault" {
   count               = var.mssql_authentication_by_ad_only ? 0 : 1
   name                = "${local.prefix}-kv"
   location            = local.resource_group_location
-  resource_group_name = resource_group_name
+  resource_group_name = local.resource_group_name
   tenant_id           = data.azurerm_client_config.current.tenant_id
   sku_name            = "standard"
 
@@ -73,8 +77,8 @@ resource "azurerm_key_vault" "key_vault" {
 resource "azurerm_key_vault_secret" "sql_admin_username" {
   count        = var.mssql_authentication_by_ad_only ? 0 : 1
   name         = "${local.prefix}-sql-admin-username"
-  value        = random_string.username.result
-  key_vault_id = azurerm_key_vault.key_vault.id
+  value        = random_string.username[0].result
+  key_vault_id = azurerm_key_vault.key_vault[0].id
   tags         = merge(local.common_tags, tomap({ "type" = "key-vault-secret-username" }))
 
   depends_on = [azurerm_key_vault.key_vault]
@@ -83,8 +87,8 @@ resource "azurerm_key_vault_secret" "sql_admin_username" {
 resource "azurerm_key_vault_secret" "sql_admin_password" {
   count        = var.mssql_authentication_by_ad_only ? 0 : 1
   name         = "${local.prefix}-sql-admin-password"
-  value        = random_password.password.result
-  key_vault_id = azurerm_key_vault.key_vault.id
+  value        = random_password.password[0].result
+  key_vault_id = azurerm_key_vault.key_vault[0].id
   tags         = merge(local.common_tags, tomap({ "type" = "key-vault-secret-password" }))
 
   depends_on = [azurerm_key_vault.key_vault]
@@ -94,13 +98,13 @@ resource "azurerm_key_vault_secret" "sql_admin_password" {
 # Azure AD identity for Azure SQL Administrative
 ################################################
 data "azuread_service_principal" "mssql_ad_administrative_sp" {
-  count        = var.mssql_administrative_ad_entity_type == "ServicePrincipal" && length(var.mssql_administrative_ad_service_principal_name) > 0 ? 1 : 0
+  count        = local.mssql_administrative_ad_service_principal_name ? 1 : 0
   display_name = var.mssql_administrative_ad_service_principal_name
 }
 
 data "azuread_user" "mssql_ad_administrative_user" {
-  count        = var.mssql_administrative_ad_entity_type == "User" && length(var.mssql_administrative_ad_service_principal_name) > 0 ? 1 : 0
-  display_name = var.mssql_administrative_ad_service_principal_name
+  count        = local.mssql_administrative_ad_user_principal_name ? 1 : 0
+  user_principal_name = var.mssql_administrative_ad_service_principal_name
 }
 
 ###########################
@@ -110,7 +114,7 @@ resource "azurerm_user_assigned_identity" "mssql_server_identity" {
   count               = var.create_user_assigned_managed_identity ? 1 : 0
   name                = "${local.prefix}-mssqlserver-identity"
   location            = local.resource_group_location
-  resource_group_name = resource_group_name
+  resource_group_name = local.resource_group_name
 
   tags = merge(local.common_tags, tomap({
     "type" : "user-defined-managed-identity"
@@ -121,13 +125,13 @@ resource "azurerm_role_assignment" "mssql_server_identity_role_assignment" {
   for_each             = var.create_user_assigned_managed_identity ? toset(var.azure_sql_server_role_assigned_names) : []
   role_definition_name = each.key
   scope                = data.azurerm_subscription.current.id
-  principal_id         = azurerm_user_assigned_identity.mssql_server_identity.principal_id
+  principal_id         = azurerm_user_assigned_identity.mssql_server_identity[0].principal_id
 }
 
 resource "azuread_application" "mssql_server_identity_ad_app" {
   count            = var.create_user_assigned_managed_identity ? 1 : 0
   display_name     = "${local.prefix}-mssql-server-identity-ad-app"
-  owners           = [azurerm_user_assigned_identity.mssql_server_identity.principal_id]
+  owners           = [azurerm_user_assigned_identity.mssql_server_identity[0].principal_id]
   sign_in_audience = "AzureADMyOrg"
 
   dynamic "app_role" {
@@ -163,20 +167,29 @@ resource "azuread_application" "mssql_server_identity_ad_app" {
 #########################################################
 resource "azurerm_mssql_server" "main" {
   name                = "${local.prefix}-mssqlserver-main"
-  resource_group_name = resource_group_name
+  resource_group_name = local.resource_group_name
   location            = local.resource_group_location
   version             = "12.0"
   minimum_tls_version = "1.2"
 
-  administrator_login          = var.mssql_authentication_by_ad_only ? azurerm_key_vault_secret.sql_admin_username.value : null
-  administrator_login_password = var.mssql_authentication_by_ad_only ? azurerm_key_vault_secret.sql_admin_password.value : null
+  administrator_login          = var.mssql_authentication_by_ad_only ? azurerm_key_vault_secret.sql_admin_username[0].value : null
+  administrator_login_password = var.mssql_authentication_by_ad_only ? azurerm_key_vault_secret.sql_admin_password[0].value : null
 
   dynamic "azuread_administrator" {
-    for_each = var.enable_mssql_authentication_by_ad ? [1] : []
+    for_each = local.mssql_administrative_ad_service_principal_name ? [1] : []
     content {
       azuread_authentication_only = var.mssql_authentication_by_ad_only
-      login_username              = data.azuread_service_principal.mssql_ad_administrative_sp.display_name
-      object_id                   = data.azuread_service_principal.mssql_ad_administrative_sp.application_id
+      login_username              = data.azuread_service_principal.mssql_ad_administrative_sp[0].display_name
+      object_id                   = data.azuread_service_principal.mssql_ad_administrative_sp[0].application_id
+    }
+  }
+
+  dynamic "azuread_administrator" {
+    for_each = local.mssql_administrative_ad_user_principal_name ? [1] : []
+    content {
+      azuread_authentication_only = var.mssql_authentication_by_ad_only
+      login_username              = data.azuread_user.mssql_ad_administrative_user[0].display_name
+      object_id                   = data.azuread_user.mssql_ad_administrative_user[0].object_id
     }
   }
 
@@ -184,11 +197,11 @@ resource "azurerm_mssql_server" "main" {
     for_each = var.create_user_assigned_managed_identity ? [1] : []
     content {
       type         = "UserAssigned"
-      identity_ids = [azurerm_user_assigned_identity.mssql_server_identity.id]
+      identity_ids = [azurerm_user_assigned_identity.mssql_server_identity[0].id]
     }
   }
 
-  primary_user_assigned_identity_id = azurerm_user_assigned_identity.mssql_server_identity.id
+  primary_user_assigned_identity_id = azurerm_user_assigned_identity.mssql_server_identity[0].id
 
   tags = merge(local.common_tags, tomap({
     "type" : "azure-sql-server"
