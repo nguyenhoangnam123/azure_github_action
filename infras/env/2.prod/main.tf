@@ -9,9 +9,7 @@ module "azure_sql" {
   mssql_administrative_ad_service_principal_name = var.mssql_administrative_ad_service_principal_name
 
   mssql_database_zone_redundant = var.mssql_database_zone_redundant
-  mssql_database_sku_name       = var.mssql_database_sku_name
   mssql_database_read_scale     = var.mssql_database_read_scale
-  mssql_database_max_size_gb    = var.mssql_database_max_size_gb
 
   common_tags = local.common_tags
 }
