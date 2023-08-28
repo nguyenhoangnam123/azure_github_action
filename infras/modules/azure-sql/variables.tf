@@ -160,7 +160,7 @@ variable "mssql_database_sku_name" {
 }
 
 variable "mssql_database_storage_account_type" {
-  type        = bool
+  type        = string
   description = "mssql database storage account type"
   default     = "Geo"
 
